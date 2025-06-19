@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Jury - Contrôle Chronos</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 30px; }
+    .chrono { font-size: 40px; margin: 20px; }
+    button { font-size: 18px; margin: 5px; padding: 10px 20px; }
+  </style>
+</head>
+<body>
+  <h1>ÉQUIPE B</h1>
+  <div>
+    <h2>Chrono : <span id="chrono">00:00:00</span></h2>
+    <button onclick="start('A')">Démarrer A</button>
+    <button onclick="stop('A')">Stop A</button>
+    <button onclick="reset('A')">Reset A</button>
+  </div>
+  <div>
+    <h2>Équipe B : <span id="chronoB">00:00:00</span></h2>
+    <button onclick="start('B')">Démarrer B</button>
+    <button onclick="stop('B')">Stop B</button>
+    <button onclick="reset('B')">Reset B</button>
+  </div>
+  <button onclick="start('A'); start('B');" style="margin-top:20px;">▶️ Démarrer les 2</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUXyiC63cD3Y1zGy9UaPJ5yMEaDPvC5PE",
+      authDomain: "chrono-equipe-v2.firebaseapp.com",
+      databaseURL: "https://chrono-equipe-v2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chrono-equipe-v2",
+      storageBucket: "chrono-equipe-v2.firebasestorage.app",
+      messagingSenderId: "962671917095",
+      appId: "1:962671917095:web:a1e6dd002596dd7aa93602"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function start(team) {
+      db.ref('chronos/' + team).set({
+        startedAt: Date.now(),
+        stoppedAt: null
+      });
+    }
+
+    function stop(team) {
+      db.ref('chronos/' + team + '/stoppedAt').set(Date.now());
+    }
+
+    function reset(team) {
+      db.ref('chronos/' + team).set({
+        startedAt: null,
+        stoppedAt: null
+      });
+    }
+
+    function updateDisplay(team, chronoId) {
+      db.ref('chronos/' + team).on('value', snap => {
+        const data = snap.val();
+        let interval = setInterval(() => {
+          const now = Date.now();
+          if (!data?.startedAt) {
+            document.getElementById(chronoId).textContent = "00:00:00";
+            clearInterval(interval);
+            return;
+          }
+          let end = data.stoppedAt || now;
+          let diff = Math.floor((end - data.startedAt) / 1000);
+          let h = String(Math.floor(diff / 3600)).padStart(2, '0');
+          let m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+          let s = String(diff % 60).padStart(2, '0');
+          document.getElementById(chronoId).textContent = `${h}:${m}:${s}`;
+          if (data?.stoppedAt) clearInterval(interval);
+        }, 1000);
+      });
+    }
+
+    updateDisplay('A', 'chronoA');
+    updateDisplay('B', 'chronoB');
+  </script>
+</body>
+</html>
