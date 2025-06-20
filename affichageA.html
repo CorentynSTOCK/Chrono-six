@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Équipe A</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    body {
+      text-align: center;
+      font-family: sans-serif;
+      margin: 0;
+      background-color: blue;
+      color: white;
+    }
+    .container {
+      padding-top: 30px;
+    }
+    .logo {
+      width: 150px;
+      margin-bottom: 10px;
+    }
+    h1 {
+      font-size: 36px;
+      margin: 10px 0;
+    }
+    #chrono {
+      font-size: 100px;
+      font-weight: bold;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="logo.png" id="logo" alt="Logo" class="logo" />
+    <h1 id="teamName">ÉQUIPE A</h1>
+    <div id="chrono">00:00.000</div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUXyiC63cD3Y1zGy9UaPJ5yMEaDPvC5PE",
+      authDomain: "chrono-equipe-v2.firebaseapp.com",
+      databaseURL: "https://chrono-equipe-v2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chrono-equipe-v2",
+      storageBucket: "chrono-equipe-v2.firebasestorage.app",
+      messagingSenderId: "962671917095",
+      appId: "1:962671917095:web:c6914f49cead3743a93602"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const team = "A";
+    let state = {};
+
+    db.ref('chronos/' + team).on('value', snap => {
+      state = snap.val() || {};
+    });
+
+    db.ref('noms/' + team).on('value', snap => {
+      const val = snap.val();
+      if (val) document.getElementById("teamName").textContent = val;
+    });
+
+    db.ref('logos/' + team).on('value', snap => {
+      const logoURL = snap.val();
+      if (logoURL) document.getElementById("logo").src = logoURL;
+    });
+
+    setInterval(() => {
+      const now = Date.now();
+      const display = document.getElementById("chrono");
+      if (!state?.startedAt) {
+        display.textContent = "00:00.000";
+        return;
+      }
+      const end = state.stoppedAt || now;
+      const diff = end - state.startedAt;
+      const minutes = String(Math.floor(diff / 60000)).padStart(2, '0');
+      const seconds = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+      const millis = String(diff % 1000).padStart(3, '0');
+      display.textContent = `${minutes}:${seconds}.${millis}`;
+    }, 50);
+  </script>
+</body>
+</html>
