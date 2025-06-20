@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>STOP Équipe B</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    body {
+      background-color: #222;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 100px;
+    }
+    button {
+      font-size: 60px;
+      padding: 40px 80px;
+      background-color: red;
+      color: white;
+      border: none;
+      border-radius: 15px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Fin de parcours - Équipe B</h1>
+  <button onclick="stopChrono()">STOP</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUXyiC63cD3Y1zGy9UaPJ5yMEaDPvC5PE",
+      authDomain: "chrono-equipe-v2.firebaseapp.com",
+      databaseURL: "https://chrono-equipe-v2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chrono-equipe-v2",
+      storageBucket: "chrono-equipe-v2.appspot.com",
+      messagingSenderId: "962671917095",
+      appId: "1:962671917095:web:c6914f49cead3743a93602"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const equipe = "B";
+
+    function stopChrono() {
+      db.ref("chronos/" + equipe + "/stoppedAt").set(Date.now());
+    }
+  </script>
+</body>
+</html>
