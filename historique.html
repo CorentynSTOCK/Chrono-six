@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Historique des Courses</title>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f0f0f0;
+      padding: 40px;
+      text-align: center;
+    }
+    h1 { margin-bottom: 30px; }
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      width: 90%;
+      background: white;
+    }
+    th, td {
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>📜 Historique des Courses</h1>
+  <table id="historyTable">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Équipe A</th>
+        <th>Durée A</th>
+        <th>Équipe B</th>
+        <th>Durée B</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button class="btn" onclick="exportCSV()">📤 Exporter en CSV</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBUXyiC63cD3Y1zGy9UaPJ5yMEaDPvC5PE",
+      authDomain: "chrono-equipe-v2.firebaseapp.com",
+      databaseURL: "https://chrono-equipe-v2-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "chrono-equipe-v2",
+      storageBucket: "chrono-equipe-v2.firebasestorage.app",
+      messagingSenderId: "962671917095",
+      appId: "1:962671917095:web:c6914f49cead3743a93602"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function format(ms) {
+      if (!ms) return "--";
+      const m = String(Math.floor(ms / 60000)).padStart(2, '0');
+      const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+      const msr = String(ms % 1000).padStart(3, '0');
+      return `${m}:${s}.${msr}`;
+    }
+
+    function load() {
+      db.ref("historique").once("value").then(snap => {
+        const data = snap.val();
+        const tbody = document.querySelector("tbody");
+        tbody.innerHTML = "";
+        const rows = [];
+        for (const key in data) {
+          const entry = data[key];
+          const row = `
+            <tr>
+              <td>${entry.timestamp || key}</td>
+              <td>${entry.A.nom}</td>
+              <td>${format(entry.A.duree)}</td>
+              <td>${entry.B.nom}</td>
+              <td>${format(entry.B.duree)}</td>
+            </tr>
+          `;
+          rows.push(row);
+        }
+        tbody.innerHTML = rows.reverse().join('');
+      });
+    }
+
+    function exportCSV() {
+      db.ref("historique").once("value").then(snap => {
+        const data = snap.val();
+        let csv = "Horodatage,Équipe A,Durée A (ms),Équipe B,Durée B (ms)\n";
+        for (const key in data) {
+          const e = data[key];
+          csv += `${e.timestamp || key},${e.A.nom},${e.A.duree},${e.B.nom},${e.B.duree}\n`;
+        }
+        const blob = new Blob([csv], {{ type: "text/csv;charset=utf-8;" }});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "historique_chronos.csv";
+        a.click();
+      });
+    }
+
+    load();
+  </script>
+</body>
+</html>
